@@ -1,5 +1,6 @@
 package samples.samuems;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
@@ -11,9 +12,9 @@ import retrofit2.http.Query;
 public interface ApiService {
 
     @GET("/samuapp/script.php")
-    Call<Void> getDatos (@Query("datos") String datos);
+    Call<ResponseBody> getDatos (@Query("datos") String datos);
 
     @POST("/samuapp/script.php")
-    Call<SpechData> getDatosPost (@Field("datos") String datos);
+    Call<ResponseBody> getDatosPost (@Query("datos") String datos);
 
 }

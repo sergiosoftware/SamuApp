@@ -6,14 +6,17 @@ import android.speech.RecognizerIntent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -35,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         mEntradaVoz = findViewById(R.id.textoEntrada);
         mBotonHablar = findViewById(R.id.botonHablar);
         retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.137.76")
+                .baseUrl("http://192.168.137.182")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         service = retrofit.create(ApiService.class);
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println(result.get(0));
                     //Para Enviar los datos
                     enviarServidorGet(result.get(0));
+                    //enviarServidorPost(result.get(0));
 
                 }
                 break;
@@ -77,28 +81,74 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public void enviarServidorGet(String data){
-        Call<Void> response = service.getDatos(data);
-        response.enqueue(new Callback<Void>() {
+        Call<ResponseBody> response = service.getDatos(data);
+        response.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
-                    Toast toast1 = Toast.makeText(getApplicationContext(),"Datos Enviados", Toast.LENGTH_SHORT);
-                    toast1.show();
+                    if(response.body()!=null){
+                        try {
+                            String respuesta= response.body().string();
+                            System.out.println("datos de body: "+respuesta);
+                            Toast toast1 = Toast.makeText(getApplicationContext(),"Respuesta Servidor:"+respuesta, Toast.LENGTH_LONG);
+                            toast1.show();
+                        } catch (IOException e) {
+                            Toast toast1 = Toast.makeText(getApplicationContext(),"Error en el body", Toast.LENGTH_SHORT);
+                            toast1.show();
+                        }
+
                 } else {
-                    Toast toast2 = Toast.makeText(getApplicationContext(),"Error de Conexión 1", Toast.LENGTH_SHORT);
+                    Toast toast2 = Toast.makeText(getApplicationContext(),"Error de Comunicación", Toast.LENGTH_SHORT);
                     toast2.show();
                 }
             }
+            }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast toast3 = Toast.makeText(getApplicationContext(),"Error de Conexión 2", Toast.LENGTH_SHORT);
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast toast3 = Toast.makeText(getApplicationContext(),"Error con el Servidor", Toast.LENGTH_SHORT);
                 toast3.show();
             }
         });
     }
 
     public void enviarServidorPost(String data){
+        SpechData datos = new SpechData(data);
+        System.out.println("Datos desde app"+datos.getDatos());
+        Call<ResponseBody> response = service.getDatosPost(datos.getDatos());
+        response.enqueue(new Callback<ResponseBody>() {
 
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.body()!=null){
+
+                        System.out.println("cuerpo: "+call.request().toString());
+                    }
+                if (response.isSuccessful()){
+                    //Toast toast1 = Toast.makeText(getApplicationContext(),"Respuesta Servidor:"+response.body().toString(), Toast.LENGTH_SHORT);
+                    //toast1.show();
+                    if(response.body()!=null){
+                        try {
+                            String respuesta= response.body().string();
+                            System.out.println("datos de body: "+respuesta);
+                            Toast toast1 = Toast.makeText(getApplicationContext(),"Respuesta Servidor:"+respuesta, Toast.LENGTH_LONG);
+                            toast1.show();
+                        } catch (IOException e) {
+                            Toast toast1 = Toast.makeText(getApplicationContext(),"Error en el body", Toast.LENGTH_SHORT);
+                            toast1.show();
+                        }
+                    }
+                } else {
+                    Toast toast2 = Toast.makeText(getApplicationContext(),"Error de datos", Toast.LENGTH_SHORT);
+                    toast2.show();
+                }
+
+            }
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast toast2 = Toast.makeText(getApplicationContext(),"Error de Comunicación", Toast.LENGTH_SHORT);
+                toast2.show();
+            }
+        });
     }
 }
