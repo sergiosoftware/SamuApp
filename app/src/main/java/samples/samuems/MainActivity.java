@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton mBotonHablar;
     private Retrofit retrofit;
     ApiService service;
+    private String coordenadas;
+    private EditText mCedula;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,10 +56,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
+        mCedula=findViewById(R.id.editCedula);
         mEntradaVoz = findViewById(R.id.textoEntrada);
         mBotonHablar = findViewById(R.id.botonHablar);
         retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.137.182")
+                .baseUrl("http://192.168.137.49")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         service = retrofit.create(ApiService.class);
@@ -83,11 +87,12 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("MissingPermission")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        //--> Aqui coordenadas
         LocationManager locManager;
         Location loc;
         locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
+        coordenadas=loc.getLongitude()+ " - "+loc.getLatitude();
         System.out.println("Longitud: "+loc.getLongitude()+ " Latitud: "+loc.getLatitude());
         Toast toast1 = Toast.makeText(getApplicationContext(),"Coordenadas:"+loc.getLongitude()+" - "+loc.getLatitude(), Toast.LENGTH_LONG);
         toast1.show();
@@ -101,14 +106,10 @@ public class MainActivity extends AppCompatActivity {
                     mEntradaVoz.setText(result.get(0));
 
                     //Para Enviar los datos
-                    enviarServidorGet(result.get(0));
-                    //enviarServidorPost(result.get(0));
-
-
                     System.out.println(result.get(0));
-
-
-                }
+                    //enviarServidorGet(result.get(0));
+                    enviarServidorPost(result.get(0),coordenadas,mCedula.getText().toString());
+}
                 break;
             }
         }
@@ -145,43 +146,33 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void enviarServidorPost(String data){
-        SpechData datos = new SpechData(data);
-        System.out.println("Datos desde app"+datos.getDatos());
-        Call<ResponseBody> response = service.getDatosPost(datos.getDatos());
-        response.enqueue(new Callback<ResponseBody>() {
+    public void enviarServidorPost(final String datos, final String coordenadas, final String cedula){
 
+        SpechData info = new SpechData(datos, coordenadas, cedula);
+        Call<Void> response = service.datosPost(info);
+        response.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if(response.body()!=null){
-
-                        System.out.println("cuerpo: "+call.request().toString());
-                    }
+            public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()){
-                    //Toast toast1 = Toast.makeText(getApplicationContext(),"Respuesta Servidor:"+response.body().toString(), Toast.LENGTH_SHORT);
-                    //toast1.show();
-                    if(response.body()!=null){
-                        try {
-                            String respuesta= response.body().string();
-                            System.out.println("datos de body: "+respuesta);
-                            Toast toast1 = Toast.makeText(getApplicationContext(),"Respuesta Servidor:"+respuesta, Toast.LENGTH_LONG);
-                            toast1.show();
-                        } catch (IOException e) {
-                            Toast toast1 = Toast.makeText(getApplicationContext(),"Error en el body", Toast.LENGTH_SHORT);
-                            toast1.show();
-                        }
-                    }
+                    SpechData spechData = new SpechData();
+                    //spechData= response.body();
+                    //System.out.println("datos de body post: "+spechData);
+                    Toast.makeText(getApplicationContext(),"Datos enviados", Toast.LENGTH_LONG).show();
                 } else {
-                    Toast toast2 = Toast.makeText(getApplicationContext(),"Error de datos", Toast.LENGTH_SHORT);
-                    toast2.show();
+                    Toast.makeText(getApplicationContext(),"Error en solicitus", Toast.LENGTH_LONG).show();
+
                 }
 
+
             }
+
             @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast toast2 = Toast.makeText(getApplicationContext(),"Error de Comunicación", Toast.LENGTH_SHORT);
-                toast2.show();
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(getApplicationContext(),"Error en conexcion", Toast.LENGTH_LONG).show();
+
             }
         });
+
+
     }
 }
