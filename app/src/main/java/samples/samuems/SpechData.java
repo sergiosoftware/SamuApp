@@ -2,41 +2,52 @@ package samples.samuems;
 
 
 public class SpechData {
-       public String datos;
-       public String coordenadas;
-       public String cedula;
+        public String cedulaPaciente;
+        public String texto;
+        public String lat;
+        public String lon;
 
-    public SpechData(String datos, String coordenadas,String cedula) {
-        this.datos = datos;
-        this.coordenadas = coordenadas;
-        this.cedula = cedula;
-    }
 
     public SpechData(){
 
     }
 
-    public void setDatos(String datos) {
-        this.datos = datos;
+    public SpechData(String cedulaPaciente, String texto, String lat, String lon) {
+        this.cedulaPaciente = cedulaPaciente;
+        this.texto = texto;
+        this.lat = lat;
+        this.lon = lon;
     }
 
-    public String getDatos() {
-        return datos;
+    public String getCedulaPaciente() {
+        return cedulaPaciente;
     }
 
-    public String getCoordenadas() {
-        return coordenadas;
+    public void setCedulaPaciente(String cedulaPaciente) {
+        this.cedulaPaciente = cedulaPaciente;
     }
 
-    public void setCoordenadas(String coordenadas) {
-        this.coordenadas = coordenadas;
+    public String getTexto() {
+        return texto;
     }
 
-    public String getCedula() {
-        return cedula;
+    public void setTexto(String texto) {
+        this.texto = texto;
     }
 
-    public void setCedula(String cedula) {
-        this.cedula = cedula;
+    public String getLat() {
+        return lat;
+    }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public String getLon() {
+        return lon;
+    }
+
+    public void setLon(String lon) {
+        this.lon = lon;
     }
 }

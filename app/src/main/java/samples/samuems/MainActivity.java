@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.speech.RecognizerIntent;
 import android.support.annotation.Nullable;
@@ -15,12 +14,14 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private Retrofit retrofit;
     ApiService service;
     private String coordenadas;
-    private EditText mCedula;
+    private String lat;
+    private String lon;
+    private EditText cedulaPaciente;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,12 +59,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-        mCedula=findViewById(R.id.editCedula);
+        cedulaPaciente =findViewById(R.id.editCedula);
         mEntradaVoz = findViewById(R.id.textoEntrada);
         mBotonHablar = findViewById(R.id.botonHablar);
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
         retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.137.49")
-                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("https://frozen-escarpment-13524.herokuapp.com")
+                //.baseUrl("http://192.168.1.15")
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
         service = retrofit.create(ApiService.class);
         mBotonHablar.setOnClickListener(new View.OnClickListener() {
@@ -93,9 +100,11 @@ public class MainActivity extends AppCompatActivity {
         locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         coordenadas=loc.getLongitude()+ " - "+loc.getLatitude();
-        System.out.println("Longitud: "+loc.getLongitude()+ " Latitud: "+loc.getLatitude());
-        Toast toast1 = Toast.makeText(getApplicationContext(),"Coordenadas:"+loc.getLongitude()+" - "+loc.getLatitude(), Toast.LENGTH_LONG);
-        toast1.show();
+        lat=""+loc.getLatitude();
+        lon=""+loc.getLongitude();
+        //System.out.println("Longitud: "+loc.getLongitude()+ " Latitud: "+loc.getLatitude());
+        //Toast toast1 = Toast.makeText(getApplicationContext(),"Coordenadas:"+loc.getLongitude()+" - "+loc.getLatitude(), Toast.LENGTH_LONG);
+        //toast1.show();
 
 
         super.onActivityResult(requestCode, resultCode, data);
@@ -108,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                     //Para Enviar los datos
                     System.out.println(result.get(0));
                     //enviarServidorGet(result.get(0));
-                    enviarServidorPost(result.get(0),coordenadas,mCedula.getText().toString());
+                    enviarServidorPost(result.get(0),lat,lon,cedulaPaciente.getText().toString());
 }
                 break;
             }
@@ -146,20 +155,21 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void enviarServidorPost(final String datos, final String coordenadas, final String cedula){
+    public void enviarServidorPost(final String datos, final String latitud,final String longitud, final String cedula){
 
-        SpechData info = new SpechData(datos, coordenadas, cedula);
-        Call<Void> response = service.datosPost(info);
-        response.enqueue(new Callback<Void>() {
+        SpechData info = new SpechData(cedula,datos,latitud,longitud);
+        Call<ResponseBody> response = service.datosPost(info);
+        response.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()){
                     SpechData spechData = new SpechData();
                     //spechData= response.body();
-                    //System.out.println("datos de body post: "+spechData);
+                    //System.out.println("texto de body post: "+spechData);
                     Toast.makeText(getApplicationContext(),"Datos enviados", Toast.LENGTH_LONG).show();
+                    System.out.println(response.body().toString());
                 } else {
-                    Toast.makeText(getApplicationContext(),"Error en solicitus", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"La cédula no se encuentra registrada.", Toast.LENGTH_LONG).show();
 
                 }
 
@@ -167,8 +177,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"Error en conexcion", Toast.LENGTH_LONG).show();
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(getApplicationContext(),"Error de Conexión", Toast.LENGTH_LONG).show();
 
             }
         });

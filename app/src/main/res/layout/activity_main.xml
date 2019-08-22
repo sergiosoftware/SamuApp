@@ -37,27 +37,30 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="En que te puedo ayudar?"/>
-
-        <ImageButton
-            android:id="@+id/botonHablar"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@drawable/ic_microfono" />
+            android:text="¿En que te puedo ayudar?"/>
 
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            android:text="Cedula cliente"/>
+            android:layout_marginTop="30dp"
+            android:text="Cédula Paciente"/>
 
         <EditText
             android:inputType="number"
             android:id="@+id/editCedula"
             android:layout_width="match_parent"
-            android:hint="Cedula"
+            android:hint="Cédula"
             android:layout_height="wrap_content" />
+
+
+
+        <ImageButton
+            android:id="@+id/botonHablar"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="30dp"
+            android:src="@drawable/ic_microfono" />
     </LinearLayout>
 
 </RelativeLayout>

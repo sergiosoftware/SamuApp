@@ -1,5 +1,7 @@
 package samples.samuems;
 
+import com.google.gson.Gson;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -15,7 +17,11 @@ public interface ApiService {
     @GET("/samuapp/script.php")
     Call<ResponseBody> getDatos (@Query("datos") String datos);
 
-    @POST("/samuapp/script.php")
-    Call<Void> datosPost (@Body SpechData datos);
+   @POST("/crear_emergencia/")
+   Call<ResponseBody> datosPost (@Body SpechData datos);
+
+//    @POST("/samuapp/script.php")
+//    Call<ResponseBody> datosPost (@Body SpechData datos);
+
 
 }
